@@ -7,6 +7,14 @@
     android:orientation="vertical"
     tools:context=".MainActivity">
 
+    <androidx.appcompat.widget.AppCompatImageView
+        android:id="@+id/photoIv"
+        android:layout_width="match_parent"
+        android:layout_height="200dp"
+        android:layout_margin="10dp"
+        android:scaleType="fitCenter"
+        app:srcCompat="@drawable/ic_photo_24dp" />
+
     <com.google.android.material.button.MaterialButton
         android:id="@+id/captureBtn"
         style="@style/Widget.MaterialComponents.Button"
