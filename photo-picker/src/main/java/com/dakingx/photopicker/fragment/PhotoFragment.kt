@@ -1,5 +1,6 @@
 package com.dakingx.photopicker.fragment
 
+import android.Manifest
 import android.app.Activity
 import android.content.ContentResolver
 import android.content.Intent
@@ -11,6 +12,7 @@ import android.provider.MediaStore
 import androidx.core.content.FileProvider
 import androidx.core.net.toFile
 import androidx.fragment.app.Fragment
+import com.dakingx.photopicker.ext.checkAppPermission
 import com.dakingx.photopicker.ext.filePath2Uri
 import com.dakingx.photopicker.ext.generateTempFile
 import java.lang.RuntimeException
@@ -29,6 +31,12 @@ class PhotoFragment : Fragment() {
 
     companion object {
         const val FRAGMENT_TAG = "photo_fragment"
+
+        val REQUIRED_PERMISSIONS = listOf(
+            Manifest.permission.CAMERA,
+            Manifest.permission.READ_EXTERNAL_STORAGE,
+            Manifest.permission.WRITE_EXTERNAL_STORAGE
+        )
 
         private const val PARAM_FILE_PROVIDER_AUTH = "param_file_provider_auth"
 
@@ -77,6 +85,12 @@ class PhotoFragment : Fragment() {
     }
 
     fun capture(callback: PhotoOpCallback) {
+        // 应用权限检查
+        if (!checkRequiredPermissions()) {
+            callback.invoke(PhotoOpResult.Failure)
+            return
+        }
+
         this.captureCallback = callback
 
         val file = context?.generateTempFile("capture_photo")
@@ -101,6 +115,12 @@ class PhotoFragment : Fragment() {
     }
 
     fun pick(callback: PhotoOpCallback) {
+        // 应用权限检查
+        if (!checkRequiredPermissions()) {
+            callback.invoke(PhotoOpResult.Failure)
+            return
+        }
+
         this.pickCallback = callback
 
         val intent = Intent(Intent.ACTION_PICK).apply {
@@ -110,6 +130,12 @@ class PhotoFragment : Fragment() {
     }
 
     fun crop(uri: Uri, callback: PhotoOpCallback) {
+        // 应用权限检查
+        if (!checkRequiredPermissions()) {
+            callback.invoke(PhotoOpResult.Failure)
+            return
+        }
+
         val cropIntent = Intent("com.android.camera.action.CROP")
 
         this.cropCallback = callback
@@ -213,4 +239,7 @@ class PhotoFragment : Fragment() {
 
     private fun filePath2Uri(filePath: String): Uri? =
         context?.filePath2Uri(fileProviderAuthority, filePath)
+
+    private fun checkRequiredPermissions(): Boolean =
+        context?.checkAppPermission(*REQUIRED_PERMISSIONS.toTypedArray()) ?: false
 }

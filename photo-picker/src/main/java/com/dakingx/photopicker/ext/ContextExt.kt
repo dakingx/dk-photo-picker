@@ -1,9 +1,11 @@
 package com.dakingx.photopicker.ext
 
 import android.content.Context
+import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
 import android.os.Environment
+import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import java.io.File
 import kotlin.random.Random
@@ -28,3 +30,9 @@ fun Context.filePath2Uri(fileProviderAuthority: String, filePath: String): Uri? 
     } catch (e: Throwable) {
         null
     }
+
+fun Context.checkAppPermission(vararg permission: String): Boolean = permission.all {
+    ContextCompat.checkSelfPermission(
+        this, it
+    ) == PackageManager.PERMISSION_GRANTED
+}
