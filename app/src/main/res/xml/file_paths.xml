@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<paths>
+    <!-- 内部存储空间应用私有目录下的 files 目录，对应Context.getFilesDir()所获取的目录路径：/data/data/<包名>/files -->
+    <files-path
+        name="file"
+        path="." />
+    <!-- 内部存储空间应用私有目录下的 cache 目录，对应Context.getCacheDir()所获取的目录路径：/data/data/<包名>/cache -->
+    <cache-path
+        name="cache"
+        path="." />
+    <!-- 外部存储空间应用私有目录下的 files 目录，对应Context.getExternalFilesDir()所获取的目录路径：/storage/emulate/0/Android/data/<包名>/files -->
+    <external-files-path
+        name="external_file"
+        path="." />
+    <!-- 外部存储空间应用私有目录下的 cache 目录，对应Context.getExternalCacheDir()所获取的目录路径：/storage/emulate/0/Android/data/<包名>/cache -->
+    <external-cache-path
+        name="external_cache"
+        path="." />
+
+</paths>

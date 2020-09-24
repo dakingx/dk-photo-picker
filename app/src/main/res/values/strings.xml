@@ -1,0 +1,6 @@
+<resources>
+    <string name="app_name">dk-tiny-photo-picker</string>
+
+    <string name="main_btn_capture">拍照</string>
+    <string name="main_btn_gallery">相册</string>
+</resources>
