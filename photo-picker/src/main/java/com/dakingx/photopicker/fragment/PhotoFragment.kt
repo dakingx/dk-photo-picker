@@ -11,7 +11,6 @@ import android.os.Bundle
 import android.provider.MediaStore
 import androidx.core.content.FileProvider
 import androidx.core.net.toFile
-import androidx.fragment.app.Fragment
 import com.dakingx.photopicker.ext.checkAppPermission
 import com.dakingx.photopicker.ext.filePath2Uri
 import com.dakingx.photopicker.ext.generateTempFile
@@ -27,7 +26,7 @@ sealed class PhotoOpResult {
 
 typealias PhotoOpCallback = (PhotoOpResult) -> Unit
 
-class PhotoFragment : Fragment() {
+class PhotoFragment : BaseFragment() {
 
     companion object {
         const val FRAGMENT_TAG = "photo_fragment"
@@ -38,7 +37,15 @@ class PhotoFragment : Fragment() {
             Manifest.permission.WRITE_EXTERNAL_STORAGE
         )
 
-        const val ARG_FILE_PROVIDER_AUTH = "arg_file_provider_auth"
+        @JvmStatic
+        fun newInstance(fileProviderAuthority: String) =
+            PhotoFragment().apply {
+                arguments = Bundle().apply {
+                    putString(ARG_FILE_PROVIDER_AUTH, fileProviderAuthority)
+                }
+            }
+
+        private const val ARG_FILE_PROVIDER_AUTH = "arg_file_provider_auth"
 
         private const val REQ_CODE_CAPTURE = 0x601
         private const val REQ_CODE_PICK = 0x602
@@ -54,18 +61,24 @@ class PhotoFragment : Fragment() {
     private var pickCallback: PhotoOpCallback? = null
     private var cropCallback: PhotoOpCallback? = null
 
+    override fun restoreState(bundle: Bundle?) {
+        bundle?.let {
+            bundle.getString(ARG_FILE_PROVIDER_AUTH)?.let {
+                fileProviderAuthority = it
+            }
+        }
+    }
+
+    override fun storeState(bundle: Bundle) {
+        bundle.also {
+            it.putString(ARG_FILE_PROVIDER_AUTH, fileProviderAuthority)
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         retainInstance = true
-
-        arguments?.getString(ARG_FILE_PROVIDER_AUTH)?.let {
-            fileProviderAuthority = it
-        }
-
-        savedInstanceState?.let {
-            fileProviderAuthority = it.getString(ARG_FILE_PROVIDER_AUTH, "")
-        }
 
         if (fileProviderAuthority.isEmpty()) {
             throw RuntimeException("fileProviderAuthority can't be empty")
@@ -75,9 +88,7 @@ class PhotoFragment : Fragment() {
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
 
-        outState.also {
-            it.putString(ARG_FILE_PROVIDER_AUTH, fileProviderAuthority)
-        }
+        storeState(outState)
     }
 
     override fun onDestroy() {

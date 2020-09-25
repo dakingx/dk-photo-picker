@@ -6,7 +6,6 @@ import com.dakingx.photopicker.fragment.PhotoOpCallback
 import com.dakingx.photopicker.fragment.PhotoOpResult
 
 import android.net.Uri
-import android.os.Bundle
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlin.coroutines.Continuation
 
@@ -70,12 +69,8 @@ suspend fun cropPhoto(
  * 获取PhotoFragment
  */
 private fun getPhotoFragment(fm: FragmentManager, fileProviderAuthority: String) =
-    fm.findFragmentByTag(PhotoFragment.FRAGMENT_TAG) as? PhotoFragment ?: PhotoFragment().apply {
-        // fragment参数
-        val bundle = Bundle()
-        bundle.putString(PhotoFragment.ARG_FILE_PROVIDER_AUTH, fileProviderAuthority)
-        arguments = bundle
-
-        fm.beginTransaction().add(this, PhotoFragment.FRAGMENT_TAG).commitAllowingStateLoss()
-        fm.executePendingTransactions()
-    }
+    fm.findFragmentByTag(PhotoFragment.FRAGMENT_TAG) as? PhotoFragment
+        ?: PhotoFragment.newInstance(fileProviderAuthority).apply {
+            fm.beginTransaction().add(this, PhotoFragment.FRAGMENT_TAG).commitAllowingStateLoss()
+            fm.executePendingTransactions()
+        }
