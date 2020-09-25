@@ -15,4 +15,10 @@ abstract class BaseFragment : Fragment() {
         restoreState(arguments)
         restoreState(savedInstanceState)
     }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+
+        storeState(outState)
+    }
 }

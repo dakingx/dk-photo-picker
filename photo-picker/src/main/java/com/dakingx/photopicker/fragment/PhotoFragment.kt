@@ -62,8 +62,8 @@ class PhotoFragment : BaseFragment() {
     private var cropCallback: PhotoOpCallback? = null
 
     override fun restoreState(bundle: Bundle?) {
-        bundle?.let {
-            bundle.getString(ARG_FILE_PROVIDER_AUTH)?.let {
+        bundle?.apply {
+            getString(ARG_FILE_PROVIDER_AUTH)?.let {
                 fileProviderAuthority = it
             }
         }
@@ -83,12 +83,6 @@ class PhotoFragment : BaseFragment() {
         if (fileProviderAuthority.isEmpty()) {
             throw RuntimeException("fileProviderAuthority can't be empty")
         }
-    }
-
-    override fun onSaveInstanceState(outState: Bundle) {
-        super.onSaveInstanceState(outState)
-
-        storeState(outState)
     }
 
     override fun onDestroy() {
