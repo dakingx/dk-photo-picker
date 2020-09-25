@@ -38,14 +38,14 @@ class PhotoFragment : Fragment() {
             Manifest.permission.WRITE_EXTERNAL_STORAGE
         )
 
-        private const val PARAM_FILE_PROVIDER_AUTH = "param_file_provider_auth"
+        const val ARG_FILE_PROVIDER_AUTH = "arg_file_provider_auth"
 
         private const val REQ_CODE_CAPTURE = 0x601
         private const val REQ_CODE_PICK = 0x602
         private const val REQ_CODE_CROP = 0x603
     }
 
-    var fileProviderAuthority: String = ""
+    private var fileProviderAuthority: String = ""
 
     private lateinit var captureFilePath: String
     private lateinit var cropFilePath: String
@@ -59,8 +59,12 @@ class PhotoFragment : Fragment() {
 
         retainInstance = true
 
+        arguments?.getString(ARG_FILE_PROVIDER_AUTH)?.let {
+            fileProviderAuthority = it
+        }
+
         savedInstanceState?.let {
-            fileProviderAuthority = it.getString(PARAM_FILE_PROVIDER_AUTH, "")
+            fileProviderAuthority = it.getString(ARG_FILE_PROVIDER_AUTH, "")
         }
 
         if (fileProviderAuthority.isEmpty()) {
@@ -72,7 +76,7 @@ class PhotoFragment : Fragment() {
         super.onSaveInstanceState(outState)
 
         outState.also {
-            it.putString(PARAM_FILE_PROVIDER_AUTH, fileProviderAuthority)
+            it.putString(ARG_FILE_PROVIDER_AUTH, fileProviderAuthority)
         }
     }
 
