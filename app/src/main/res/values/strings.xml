@@ -4,7 +4,7 @@
     <string name="main_btn_capture">拍照</string>
     <string name="main_btn_gallery">相册</string>
 
-    <string name="main_tip_lost_permission">缺少必要的应用权限</string>
+    <string name="main_tip_lack_permission">缺少必要的应用权限</string>
     <string name="main_tip_op_fail">操作失败</string>
     <string name="main_tip_op_cancel">操作取消</string>
 </resources>

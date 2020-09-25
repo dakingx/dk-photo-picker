@@ -31,8 +31,18 @@ class PhotoFragment : BaseFragment() {
     companion object {
         const val FRAGMENT_TAG = "photo_fragment"
 
-        val REQUIRED_PERMISSIONS = listOf(
+        val REQUIRED_PERMISSIONS_FOR_CAPTURE = listOf(
             Manifest.permission.CAMERA,
+            Manifest.permission.READ_EXTERNAL_STORAGE,
+            Manifest.permission.WRITE_EXTERNAL_STORAGE
+        )
+
+        val REQUIRED_PERMISSIONS_FOR_PICK = listOf(
+            Manifest.permission.READ_EXTERNAL_STORAGE,
+            Manifest.permission.WRITE_EXTERNAL_STORAGE
+        )
+
+        val REQUIRED_PERMISSIONS_FOR_CROP = listOf(
             Manifest.permission.READ_EXTERNAL_STORAGE,
             Manifest.permission.WRITE_EXTERNAL_STORAGE
         )
@@ -95,7 +105,7 @@ class PhotoFragment : BaseFragment() {
 
     fun capture(callback: PhotoOpCallback) {
         // 应用权限检查
-        if (!checkRequiredPermissions()) {
+        if (!checkRequiredPermissions(REQUIRED_PERMISSIONS_FOR_CAPTURE)) {
             callback.invoke(PhotoOpResult.Failure)
             return
         }
@@ -125,7 +135,7 @@ class PhotoFragment : BaseFragment() {
 
     fun pick(callback: PhotoOpCallback) {
         // 应用权限检查
-        if (!checkRequiredPermissions()) {
+        if (!checkRequiredPermissions(REQUIRED_PERMISSIONS_FOR_PICK)) {
             callback.invoke(PhotoOpResult.Failure)
             return
         }
@@ -140,7 +150,7 @@ class PhotoFragment : BaseFragment() {
 
     fun crop(uri: Uri, callback: PhotoOpCallback) {
         // 应用权限检查
-        if (!checkRequiredPermissions()) {
+        if (!checkRequiredPermissions(REQUIRED_PERMISSIONS_FOR_CROP)) {
             callback.invoke(PhotoOpResult.Failure)
             return
         }
@@ -249,6 +259,6 @@ class PhotoFragment : BaseFragment() {
     private fun filePath2Uri(filePath: String): Uri? =
         context?.filePath2Uri(fileProviderAuthority, filePath)
 
-    private fun checkRequiredPermissions(): Boolean =
-        context?.checkAppPermission(*REQUIRED_PERMISSIONS.toTypedArray()) ?: false
+    private fun checkRequiredPermissions(requiredPermissions: List<String>): Boolean =
+        context?.checkAppPermission(*requiredPermissions.toTypedArray()) ?: false
 }
