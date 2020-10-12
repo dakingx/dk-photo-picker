@@ -33,17 +33,17 @@ dependencies {
 
 ```xml
 <manifest>
-	<application>
-		<provider
-			android:name="androidx.core.content.FileProvider"
-			android:authorities="${applicationId}.FILE_PROVIDER"
-			android:exported="false"
-			android:grantUriPermissions="true">
-			<meta-data
-				android:name="android.support.FILE_PROVIDER_PATHS"
-				android:resource="@xml/file_paths" />
-			</provider>
-	</application>
+    <application>
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.FILE_PROVIDER"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths" />
+        </provider>
+    </application>
 </manifest>
 ```
 
