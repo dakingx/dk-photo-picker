@@ -9,6 +9,7 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.provider.MediaStore
+import android.util.Log
 import androidx.core.content.FileProvider
 import androidx.core.net.toFile
 import com.dakingx.photopicker.ext.checkAppPermission
@@ -97,8 +98,11 @@ class PhotoFragment : BaseFragment() {
 
     override fun onDestroy() {
         captureCallback?.invoke(PhotoOpResult.Cancel)
+        captureCallback = null
         pickCallback?.invoke(PhotoOpResult.Cancel)
+        pickCallback = null
         cropCallback?.invoke(PhotoOpResult.Cancel)
+        cropCallback = null
 
         super.onDestroy()
     }
@@ -198,17 +202,15 @@ class PhotoFragment : BaseFragment() {
                             if (uri != null) PhotoOpResult.Success(uri)
                             else PhotoOpResult.Failure
                         )
-                        captureCallback = null
                     }
                     Activity.RESULT_CANCELED -> {
                         captureCallback?.invoke(PhotoOpResult.Cancel)
-                        captureCallback = null
                     }
                     else -> {
                         captureCallback?.invoke(PhotoOpResult.Failure)
-                        captureCallback = null
                     }
                 }
+                captureCallback = null
             }
             REQ_CODE_PICK -> {
                 when (resultCode) {
@@ -219,17 +221,15 @@ class PhotoFragment : BaseFragment() {
                             if (uri != null) PhotoOpResult.Success(uri)
                             else PhotoOpResult.Failure
                         )
-                        pickCallback = null
                     }
                     Activity.RESULT_CANCELED -> {
                         pickCallback?.invoke(PhotoOpResult.Cancel)
-                        pickCallback = null
                     }
                     else -> {
                         pickCallback?.invoke(PhotoOpResult.Failure)
-                        pickCallback = null
                     }
                 }
+                pickCallback = null
             }
             REQ_CODE_CROP -> {
                 when (resultCode) {
@@ -240,17 +240,15 @@ class PhotoFragment : BaseFragment() {
                             if (uri != null) PhotoOpResult.Success(uri)
                             else PhotoOpResult.Failure
                         )
-                        cropCallback = null
                     }
                     Activity.RESULT_CANCELED -> {
                         cropCallback?.invoke(PhotoOpResult.Cancel)
-                        cropCallback = null
                     }
                     else -> {
                         cropCallback?.invoke(PhotoOpResult.Failure)
-                        cropCallback = null
                     }
                 }
+                cropCallback = null
             }
             else -> super.onActivityResult(requestCode, resultCode, data)
         }
