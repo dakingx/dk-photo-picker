@@ -44,7 +44,7 @@ private fun genCropPhotoCb(fragment: PhotoFragment, continuation: Continuation<P
                         continuation.resumeWith(Result.success(cropResult))
                     }
                 }
-                PhotoOpResult.Failure -> {
+                else -> {
                     continuation.resumeWith(Result.success(result))
                 }
             }

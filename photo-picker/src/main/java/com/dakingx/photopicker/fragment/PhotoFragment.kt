@@ -3,19 +3,22 @@ package com.dakingx.photopicker.fragment
 import android.Manifest
 import android.app.Activity
 import android.content.ContentResolver
+import android.content.ContentValues
 import android.content.Intent
 import android.graphics.Bitmap
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.os.Environment
 import android.provider.MediaStore
-import android.util.Log
 import androidx.core.content.FileProvider
 import androidx.core.net.toFile
 import com.dakingx.photopicker.ext.checkAppPermission
 import com.dakingx.photopicker.ext.filePath2Uri
 import com.dakingx.photopicker.ext.generateTempFile
+import com.dakingx.photopicker.ext.generateTempFile2
 import java.lang.RuntimeException
+import kotlin.random.Random
 
 sealed class PhotoOpResult {
     class Success(val uri: Uri) : PhotoOpResult()
@@ -38,10 +41,18 @@ class PhotoFragment : BaseFragment() {
             Manifest.permission.WRITE_EXTERNAL_STORAGE
         )
 
-        val REQUIRED_PERMISSIONS_FOR_PICK = listOf(
-            Manifest.permission.READ_EXTERNAL_STORAGE,
-            Manifest.permission.WRITE_EXTERNAL_STORAGE
-        )
+        val REQUIRED_PERMISSIONS_FOR_PICK = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            listOf(
+                Manifest.permission.READ_EXTERNAL_STORAGE,
+                Manifest.permission.WRITE_EXTERNAL_STORAGE,
+                Manifest.permission.ACCESS_MEDIA_LOCATION
+            )
+        } else {
+            listOf(
+                Manifest.permission.READ_EXTERNAL_STORAGE,
+                Manifest.permission.WRITE_EXTERNAL_STORAGE
+            )
+        }
 
         val REQUIRED_PERMISSIONS_FOR_CROP = listOf(
             Manifest.permission.READ_EXTERNAL_STORAGE,
@@ -65,8 +76,8 @@ class PhotoFragment : BaseFragment() {
 
     private var fileProviderAuthority: String = ""
 
-    private lateinit var captureFilePath: String
-    private lateinit var cropFilePath: String
+    private var captureFileUri: Uri? = null
+    private var cropFileUri: Uri? = null
 
     private var captureCallback: PhotoOpCallback? = null
     private var pickCallback: PhotoOpCallback? = null
@@ -121,7 +132,6 @@ class PhotoFragment : BaseFragment() {
             callback.invoke(PhotoOpResult.Failure)
             return
         }
-        this.captureFilePath = file.absolutePath
 
         val uri = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
             FileProvider.getUriForFile(requireContext(), fileProviderAuthority, file)
@@ -129,8 +139,10 @@ class PhotoFragment : BaseFragment() {
             Uri.fromFile(file)
         }
 
+        captureFileUri = uri
+
         val intent = Intent(MediaStore.ACTION_IMAGE_CAPTURE).apply {
-            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION)
             putExtra(MediaStore.EXTRA_VIDEO_QUALITY, 1)
             putExtra(MediaStore.EXTRA_OUTPUT, uri)
         }
@@ -146,9 +158,10 @@ class PhotoFragment : BaseFragment() {
 
         this.pickCallback = callback
 
-        val intent = Intent(Intent.ACTION_PICK).apply {
-            type = "image/*"
-        }
+        val intent =
+            Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI).apply {
+                type = "image/*"
+            }
         startActivityForResult(intent, REQ_CODE_PICK)
     }
 
@@ -158,6 +171,8 @@ class PhotoFragment : BaseFragment() {
             callback.invoke(PhotoOpResult.Failure)
             return
         }
+
+        val ctx = requireContext()
 
         val cropIntent = Intent("com.android.camera.action.CROP")
 
@@ -169,17 +184,34 @@ class PhotoFragment : BaseFragment() {
             )
             else uri
 
-        val file = context?.generateTempFile("crop_photo")
-        if (file == null) {
+        val mimeType = ctx.contentResolver.getType(sourceUri)
+        val fileName = "crop_photo_${System.currentTimeMillis()}_${Random.nextInt(9999)}.jpg"
+        val destinationUri = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            val values = ContentValues()
+            values.put(MediaStore.MediaColumns.DISPLAY_NAME, fileName)
+            values.put(MediaStore.MediaColumns.MIME_TYPE, mimeType)
+            values.put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_DCIM)
+            requireContext().contentResolver.insert(
+                MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+                values
+            )
+        } else {
+            val file = context?.generateTempFile2(fileName)
+            if (file == null) {
+                callback.invoke(PhotoOpResult.Failure)
+                return
+            }
+            Uri.fromFile(file)
+        }
+        if (destinationUri == null) {
             callback.invoke(PhotoOpResult.Failure)
             return
         }
-        this.cropFilePath = file.absolutePath
-        val destinationUri = Uri.fromFile(file)
+        cropFileUri = destinationUri
 
         cropIntent.apply {
-            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-            setDataAndType(sourceUri, requireContext().contentResolver.getType(sourceUri))
+            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION)
+            setDataAndType(sourceUri, mimeType)
             putExtra("noFaceDetection", true)
             putExtra("crop", "true")
             putExtra("scale", true)
@@ -196,7 +228,7 @@ class PhotoFragment : BaseFragment() {
             REQ_CODE_CAPTURE -> {
                 when (resultCode) {
                     Activity.RESULT_OK -> {
-                        val uri = filePath2Uri(captureFilePath)
+                        val uri = captureFileUri
 
                         captureCallback?.invoke(
                             if (uri != null) PhotoOpResult.Success(uri)
@@ -211,6 +243,7 @@ class PhotoFragment : BaseFragment() {
                     }
                 }
                 captureCallback = null
+                captureFileUri = null
             }
             REQ_CODE_PICK -> {
                 when (resultCode) {
@@ -234,7 +267,7 @@ class PhotoFragment : BaseFragment() {
             REQ_CODE_CROP -> {
                 when (resultCode) {
                     Activity.RESULT_OK -> {
-                        val uri = filePath2Uri(cropFilePath)
+                        val uri = cropFileUri
 
                         cropCallback?.invoke(
                             if (uri != null) PhotoOpResult.Success(uri)
@@ -249,6 +282,7 @@ class PhotoFragment : BaseFragment() {
                     }
                 }
                 cropCallback = null
+                cropFileUri = null
             }
             else -> super.onActivityResult(requestCode, resultCode, data)
         }

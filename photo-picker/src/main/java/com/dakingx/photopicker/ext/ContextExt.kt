@@ -10,8 +10,10 @@ import androidx.core.content.FileProvider
 import java.io.File
 import kotlin.random.Random
 
-fun Context.generateTempFile(prefix: String, extension: String = "jpg"): File? {
-    val fileName = "${prefix}_${System.currentTimeMillis()}_${Random.nextInt(9999)}.${extension}"
+fun Context.generateTempFile(prefix: String, extension: String = "jpg"): File? =
+    generateTempFile2("${prefix}_${System.currentTimeMillis()}_${Random.nextInt(9999)}.${extension}")
+
+fun Context.generateTempFile2(fileName: String): File? {
     val extCacheDir = this.externalCacheDir
     return if (extCacheDir != null && Environment.isExternalStorageEmulated(extCacheDir)) {
         File(extCacheDir.absolutePath, fileName)
@@ -22,7 +24,7 @@ fun Context.generateTempFile(prefix: String, extension: String = "jpg"): File? {
 
 fun Context.filePath2Uri(fileProviderAuthority: String, filePath: String): Uri? =
     try {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
             FileProvider.getUriForFile(this, fileProviderAuthority, File(filePath))
         } else {
             Uri.fromFile(File(filePath))
