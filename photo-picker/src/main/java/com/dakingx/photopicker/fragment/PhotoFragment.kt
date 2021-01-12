@@ -159,7 +159,7 @@ class PhotoFragment : BaseFragment() {
         this.pickCallback = callback
 
         val intent =
-            Intent(Intent.ACTION_PICK).apply {
+            Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI).apply {
                 type = "image/*"
             }
         startActivityForResult(intent, REQ_CODE_PICK)
