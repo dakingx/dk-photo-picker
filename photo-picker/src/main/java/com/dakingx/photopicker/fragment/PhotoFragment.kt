@@ -41,18 +41,10 @@ class PhotoFragment : BaseFragment() {
             Manifest.permission.WRITE_EXTERNAL_STORAGE
         )
 
-        val REQUIRED_PERMISSIONS_FOR_PICK = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            listOf(
-                Manifest.permission.READ_EXTERNAL_STORAGE,
-                Manifest.permission.WRITE_EXTERNAL_STORAGE,
-                Manifest.permission.ACCESS_MEDIA_LOCATION
-            )
-        } else {
-            listOf(
-                Manifest.permission.READ_EXTERNAL_STORAGE,
-                Manifest.permission.WRITE_EXTERNAL_STORAGE
-            )
-        }
+        val REQUIRED_PERMISSIONS_FOR_PICK = listOf(
+            Manifest.permission.READ_EXTERNAL_STORAGE,
+            Manifest.permission.WRITE_EXTERNAL_STORAGE
+        )
 
         val REQUIRED_PERMISSIONS_FOR_CROP = listOf(
             Manifest.permission.READ_EXTERNAL_STORAGE,
