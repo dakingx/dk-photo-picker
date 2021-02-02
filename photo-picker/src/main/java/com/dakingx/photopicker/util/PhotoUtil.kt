@@ -6,8 +6,9 @@ import com.dakingx.photopicker.fragment.PhotoOpCallback
 import com.dakingx.photopicker.fragment.PhotoOpResult
 
 import android.net.Uri
+import com.dakingx.photopicker.ext.resumeSafely
+import kotlinx.coroutines.CancellableContinuation
 import kotlinx.coroutines.suspendCancellableCoroutine
-import kotlin.coroutines.Continuation
 
 /**
  * 拍照并裁剪
@@ -34,18 +35,21 @@ suspend fun pickPhoto(fm: FragmentManager, authority: String): PhotoOpResult =
 /**
  * 处理裁剪
  */
-private fun genCropPhotoCb(fragment: PhotoFragment, continuation: Continuation<PhotoOpResult>) =
+private fun genCropPhotoCb(
+    fragment: PhotoFragment,
+    continuation: CancellableContinuation<PhotoOpResult>
+) =
     object : PhotoOpCallback {
         override fun invoke(result: PhotoOpResult) {
             when (result) {
                 is PhotoOpResult.Success -> {
                     // 裁剪
                     fragment.crop(result.uri) { cropResult ->
-                        continuation.resumeWith(Result.success(cropResult))
+                        continuation.resumeSafely(cropResult)
                     }
                 }
                 else -> {
-                    continuation.resumeWith(Result.success(result))
+                    continuation.resumeSafely(result)
                 }
             }
         }
@@ -61,7 +65,7 @@ suspend fun cropPhoto(
 ): PhotoOpResult = suspendCancellableCoroutine { continuation ->
     val fragment = getPhotoFragment(fm, authority)
     fragment.crop(sourceUri) { cropResult ->
-        continuation.resumeWith(Result.success(cropResult))
+        continuation.resumeSafely(cropResult)
     }
 }
 
@@ -71,6 +75,8 @@ suspend fun cropPhoto(
 private fun getPhotoFragment(fm: FragmentManager, fileProviderAuthority: String) =
     fm.findFragmentByTag(PhotoFragment.FRAGMENT_TAG) as? PhotoFragment
         ?: PhotoFragment.newInstance(fileProviderAuthority).apply {
-            fm.beginTransaction().add(this, PhotoFragment.FRAGMENT_TAG).commitAllowingStateLoss()
+            fm.beginTransaction()
+                .add(this, PhotoFragment.FRAGMENT_TAG)
+                .commitAllowingStateLoss()
             fm.executePendingTransactions()
         }
