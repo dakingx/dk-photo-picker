@@ -1,9 +1,9 @@
 package com.dakingx.app.photopicker
 
 import android.net.Uri
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
 import com.dakingx.app.photopicker.config.getFileProviderAuthority
 import com.dakingx.photopicker.ext.toBitmap
 import com.dakingx.photopicker.fragment.PhotoFragment
@@ -89,26 +89,26 @@ class MainActivity : AppCompatActivity() {
 
     private fun requestPermission(vararg permission: String, successAction: () -> Unit) {
         Dexter.withContext(this)
-            .withPermissions(*permission).withListener(object :
-                MultiplePermissionsListener {
-                override fun onPermissionsChecked(report: MultiplePermissionsReport) {
-                    if (report.areAllPermissionsGranted()) {
-                        runOnUiThread {
-                            successAction()
-                        }
-                    } else {
-                        runOnUiThread {
-                            toast(R.string.main_tip_lack_permission)
+            .withPermissions(*permission).withListener(
+                object : MultiplePermissionsListener {
+                    override fun onPermissionsChecked(report: MultiplePermissionsReport) {
+                        if (report.areAllPermissionsGranted()) {
+                            runOnUiThread {
+                                successAction()
+                            }
+                        } else {
+                            runOnUiThread {
+                                toast(R.string.main_tip_lack_permission)
+                            }
                         }
                     }
-                }
 
-                override fun onPermissionRationaleShouldBeShown(
-                    list: MutableList<PermissionRequest>,
-                    token: PermissionToken
-                ) {
-                    token.continuePermissionRequest()
-                }
-            }).check()
+                    override fun onPermissionRationaleShouldBeShown(
+                        list: MutableList<PermissionRequest>,
+                        token: PermissionToken
+                    ) {
+                        token.continuePermissionRequest()
+                    }
+                }).check()
     }
 }

@@ -3,6 +3,9 @@
     xmlns:tools="http://schemas.android.com/tools"
     package="com.dakingx.app.photopicker">
 
+    <!--miui系统调用截图模块需要这个权限-->
+    <uses-permission android:name="com.miui.mediaeditor.permission.CROP" />
+
     <application
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
@@ -13,7 +16,7 @@
         tools:ignore="HardcodedDebugMode">
         <activity
             android:name=".MainActivity"
-            android:screenOrientation="portrait">
+            android:screenOrientation="fullSensor">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -31,5 +34,4 @@
                 android:resource="@xml/file_paths" />
         </provider>
     </application>
-
 </manifest>

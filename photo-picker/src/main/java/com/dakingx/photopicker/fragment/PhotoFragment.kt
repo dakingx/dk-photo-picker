@@ -17,14 +17,11 @@ import com.dakingx.photopicker.ext.checkAppPermission
 import com.dakingx.photopicker.ext.filePath2Uri
 import com.dakingx.photopicker.ext.generateTempFile
 import com.dakingx.photopicker.ext.generateTempFile2
-import java.lang.RuntimeException
 import kotlin.random.Random
 
 sealed class PhotoOpResult {
     class Success(val uri: Uri) : PhotoOpResult()
-
     object Failure : PhotoOpResult()
-
     object Cancel : PhotoOpResult()
 }
 
@@ -157,17 +154,15 @@ class PhotoFragment : BaseFragment() {
         startActivityForResult(intent, REQ_CODE_PICK)
     }
 
-    fun crop(uri: Uri, callback: PhotoOpCallback) {
+    /**
+     * @param fromeCamera true:拍照；false:文件选图。
+     */
+    fun crop(uri: Uri, fromeCamera: Boolean = true, callback: PhotoOpCallback) {
         // 应用权限检查
         if (!checkRequiredPermissions(REQUIRED_PERMISSIONS_FOR_CROP)) {
             callback.invoke(PhotoOpResult.Failure)
             return
         }
-
-        val ctx = requireContext()
-
-        val cropIntent = Intent("com.android.camera.action.CROP")
-
         this.cropCallback = callback
 
         val sourceUri =
@@ -175,8 +170,7 @@ class PhotoFragment : BaseFragment() {
                 requireContext(), fileProviderAuthority, uri.toFile()
             )
             else uri
-
-        val mimeType = ctx.contentResolver.getType(sourceUri)
+        val mimeType = requireContext().contentResolver.getType(sourceUri)
         val fileName = "crop_photo_${System.currentTimeMillis()}_${Random.nextInt(9999)}.jpg"
         val destinationUri = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             val values = ContentValues()
@@ -195,23 +189,28 @@ class PhotoFragment : BaseFragment() {
             }
             Uri.fromFile(file)
         }
+
         if (destinationUri == null) {
             callback.invoke(PhotoOpResult.Failure)
             return
         }
         cropFileUri = destinationUri
 
-        cropIntent.apply {
-            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION)
-            setDataAndType(sourceUri, mimeType)
-            putExtra("noFaceDetection", true)
-            putExtra("crop", "true")
-            putExtra("scale", true)
-            putExtra("scaleUpIfNeeded", true)
-            putExtra(MediaStore.EXTRA_OUTPUT, destinationUri)
-            putExtra("outputFormat", Bitmap.CompressFormat.JPEG.name)
-            putExtra("return-data", false)
-        }
+        val cropIntent =
+            Intent("com.android.camera.action.CROP").apply {
+                if (fromeCamera) {
+                    addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION)
+                }
+
+                setDataAndType(sourceUri, mimeType)
+                putExtra("noFaceDetection", true)
+                putExtra("crop", "true")
+                putExtra("scale", true)
+                putExtra("scaleUpIfNeeded", true)
+                putExtra(MediaStore.EXTRA_OUTPUT, destinationUri)
+                putExtra("outputFormat", Bitmap.CompressFormat.JPEG.name)
+                putExtra("return-data", false)
+            }
         startActivityForResult(cropIntent, REQ_CODE_CROP)
     }
 
@@ -227,16 +226,20 @@ class PhotoFragment : BaseFragment() {
                             else PhotoOpResult.Failure
                         )
                     }
+
                     Activity.RESULT_CANCELED -> {
                         captureCallback?.invoke(PhotoOpResult.Cancel)
                     }
+
                     else -> {
                         captureCallback?.invoke(PhotoOpResult.Failure)
                     }
                 }
+
                 captureCallback = null
                 captureFileUri = null
             }
+
             REQ_CODE_PICK -> {
                 when (resultCode) {
                     Activity.RESULT_OK -> {
@@ -256,6 +259,7 @@ class PhotoFragment : BaseFragment() {
                 }
                 pickCallback = null
             }
+
             REQ_CODE_CROP -> {
                 when (resultCode) {
                     Activity.RESULT_OK -> {
@@ -276,6 +280,7 @@ class PhotoFragment : BaseFragment() {
                 cropCallback = null
                 cropFileUri = null
             }
+
             else -> super.onActivityResult(requestCode, resultCode, data)
         }
     }
