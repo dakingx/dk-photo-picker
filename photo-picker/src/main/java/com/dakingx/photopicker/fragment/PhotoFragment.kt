@@ -156,9 +156,8 @@ class PhotoFragment : BaseFragment() {
 
     /**
      * 裁剪
-     * @param fromCamera true:拍照；false:文件选图。
      */
-    fun crop(uri: Uri, fromCamera: Boolean = true, callback: PhotoOpCallback) {
+    fun crop(uri: Uri, needUriPermission: Boolean, callback: PhotoOpCallback) {
         // 应用权限检查
         if (!checkRequiredPermissions(REQUIRED_PERMISSIONS_FOR_CROP)) {
             callback.invoke(PhotoOpResult.Failure)
@@ -199,7 +198,7 @@ class PhotoFragment : BaseFragment() {
 
         val cropIntent =
             Intent("com.android.camera.action.CROP").apply {
-                if (fromCamera) {
+                if (needUriPermission) {
                     addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION)
                 }
 

@@ -34,18 +34,18 @@ suspend fun pickPhoto(fm: FragmentManager, authority: String): PhotoOpResult =
 
 /**
  * 处理裁剪
- * @param fromeCamera true:拍照；false:文件选图。
+ * @param fromCamera true: capture; false: pick
  */
 private fun genCropPhotoCb(
     fragment: PhotoFragment,
-    fromeCamera: Boolean,
+    fromCamera: Boolean,
     continuation: CancellableContinuation<PhotoOpResult>
 ) = object : PhotoOpCallback {
     override fun invoke(result: PhotoOpResult) {
         when (result) {
             is PhotoOpResult.Success -> {
                 // 裁剪
-                fragment.crop(result.uri, fromeCamera) { cropResult ->
+                fragment.crop(result.uri, fromCamera) { cropResult ->
                     continuation.resumeSafely(cropResult)
                 }
             }
@@ -62,10 +62,11 @@ private fun genCropPhotoCb(
 suspend fun cropPhoto(
     fm: FragmentManager,
     authority: String,
-    sourceUri: Uri
+    sourceUri: Uri,
+    needUriPermission: Boolean
 ): PhotoOpResult = suspendCancellableCoroutine { continuation ->
     val fragment = getPhotoFragment(fm, authority)
-    fragment.crop(sourceUri) { cropResult ->
+    fragment.crop(sourceUri, needUriPermission) { cropResult ->
         continuation.resumeSafely(cropResult)
     }
 }
